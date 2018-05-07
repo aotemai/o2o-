@@ -1,5 +1,7 @@
 package com.imooc.o2o.util;
 
+import java.io.File;
+
 public class PathUtil {
 	
 	/*
@@ -29,4 +31,5 @@ public class PathUtil {
 		String imagePath = "upload/item/shop/"+shopId+"/";
 		return imagePath.replace("/", seperator);//转换成系统识别的斜杆
 	}
+
 }

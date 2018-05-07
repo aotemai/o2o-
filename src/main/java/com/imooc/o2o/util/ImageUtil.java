@@ -130,6 +130,27 @@ public class ImageUtil {
 		.watermark(Positions.BOTTOM_RIGHT,ImageIO.read(new File(basePath+"/watermark.gif")),0.25f)//透明度0.25
 		.outputQuality(0.8f).toFile("C:/Users/huajun/Desktop/helloword.JPG");//压缩0.8
 	}
+	
+	
+	
+	/**
+	 * storePath是文件的路径还是目录的路径
+	 * 如果storePath是文件路径则删除该文件
+	 * 如果storePath是目录的路径则删除该目录下的文件
+	 */
+	public static void deleteFileOrPath(String storePath) {
+		//创建一个文件对象
+		File fileOrPath = new File(PathUtil.getImgBasePath()+storePath);
+		if(fileOrPath.exists()) {
+			if(fileOrPath.isDirectory()) {
+				File files[] = fileOrPath.listFiles();
+				for(int i=0;i<files.length;i++) {
+					files[i].delete();
+				}
+			}
+			fileOrPath.delete();
+		}
+	}
 }
 
 

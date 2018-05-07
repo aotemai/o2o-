@@ -10,11 +10,13 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Date;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.imooc.o2o.BaseTest;
 import com.imooc.o2o.dto.ShopExecution;
+import com.imooc.o2o.ecxeptions.ShopOperationException;
 import com.imooc.o2o.entity.Area;
 import com.imooc.o2o.entity.PersonInfo;
 import com.imooc.o2o.entity.Shop;
@@ -27,6 +29,30 @@ public class ShopServiceTest extends BaseTest{
 	private ShopService shopService;
 	
 	@Test
+	public void testGetShopList() {
+		Shop shopCondition = new Shop();
+		ShopCategory sc = new ShopCategory();
+		sc.setShopCategoryId(2L);
+		shopCondition.setShopCategory(sc);
+		ShopExecution se = shopService.getShopList(shopCondition, 2, 2);//1页展示2条数据
+		System.out.println("店铺列表数为：" + se.getShopList().size());
+		System.out.println("店铺总数为："+se.getCount());
+	}
+	
+	@Test
+	@Ignore
+	public void testModifyShop() throws ShopOperationException,FileNotFoundException{
+		Shop shop = new Shop();
+		shop.setShopId(1L);
+		shop.setShopName("修改后的店铺路径");
+		File shopImg = new File("C:/Users/huajun/Desktop/测试相片.png");
+		InputStream is = new FileInputStream(shopImg);
+		ShopExecution shopExecution = shopService.modifyShop(shop, is, "测试相片.png");
+		System.out.println(shopExecution.getShop().getShopImg());
+	}
+	
+	@Test
+	@Ignore
 	public void testAddShop() throws FileNotFoundException {
 		
 		Shop shop = new Shop();
