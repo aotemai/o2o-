@@ -2,7 +2,7 @@ package com.imooc.o2o.util;
 
 import javax.servlet.http.HttpServletRequest;
 
-public class HttpServiceRequestUtil {
+public class HttpServletRequestUtil {
 	/*
 	 * 将key转换成整型
 	 */

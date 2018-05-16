@@ -15,6 +15,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.imooc.o2o.BaseTest;
+import com.imooc.o2o.dto.ImageHolder;
 import com.imooc.o2o.dto.ShopExecution;
 import com.imooc.o2o.ecxeptions.ShopOperationException;
 import com.imooc.o2o.entity.Area;
@@ -47,7 +48,8 @@ public class ShopServiceTest extends BaseTest{
 		shop.setShopName("修改后的店铺路径");
 		File shopImg = new File("C:/Users/huajun/Desktop/测试相片.png");
 		InputStream is = new FileInputStream(shopImg);
-		ShopExecution shopExecution = shopService.modifyShop(shop, is, "测试相片.png");
+		ImageHolder imageHolder = new ImageHolder("测试相片.png",is);//先传名字再传流
+		ShopExecution shopExecution = shopService.modifyShop(shop,imageHolder);
 		System.out.println(shopExecution.getShop().getShopImg());
 	}
 	
@@ -77,7 +79,8 @@ public class ShopServiceTest extends BaseTest{
 		
 		File shopImg = new File("C:/Users/huajun/Desktop/cs10005.jpg");
 		InputStream is = new FileInputStream(shopImg);	
-		ShopExecution se = shopService.addShop(shop,is,shopImg.getName());
+		ImageHolder imageHolder = new ImageHolder(shopImg.getName(),is);//先传名字再传流
+		ShopExecution se = shopService.addShop(shop,imageHolder);
 		
 		assertEquals(ShopStateEnum.CHECK.getState(),se.getState());
 	}

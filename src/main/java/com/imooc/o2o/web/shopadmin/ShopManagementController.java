@@ -2,8 +2,10 @@ package com.imooc.o2o.web.shopadmin;
 
 
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +25,7 @@ import org.springframework.web.multipart.commons.CommonsMultipartFile;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.imooc.o2o.dto.ImageHolder;
 import com.imooc.o2o.dto.ShopExecution;
 import com.imooc.o2o.ecxeptions.ShopOperationException;
 import com.imooc.o2o.entity.Area;
@@ -34,7 +37,7 @@ import com.imooc.o2o.service.AreaService;
 import com.imooc.o2o.service.ShopCategoryService;
 import com.imooc.o2o.service.ShopService;
 import com.imooc.o2o.util.CodeUtil;
-import com.imooc.o2o.util.HttpServiceRequestUtil;
+import com.imooc.o2o.util.HttpServletRequestUtil;
 
 
 /**
@@ -56,43 +59,40 @@ public class ShopManagementController {
 	private AreaService areaService;
 	
 	/*
-	 * 获取商铺管理页
+	 *获取商铺管理页
 	 * 根据用户传进来的shopId进行判断是否何进入商铺管理页
 	 * 用map集合接收参数
 	 */
-	@RequestMapping(value="/getshopmanagementInfo",method=RequestMethod.GET)
+	@RequestMapping(value = "/getshopmanagementinfo", method = RequestMethod.GET)
 	@ResponseBody
-	public Map<String,Object> getShopManagementInfo(HttpServletRequest request){
-		Map<String,Object> modelmap = new HashMap<String,Object>();
-		Long shopId = HttpServiceRequestUtil.getLong(request, "shopId");
-		if(shopId <= 0 ) {//就是找不到shopid，就先试着在session里面去获取
+	private Map<String, Object> getShopManagementInfo(HttpServletRequest request) {
+		Map<String, Object> modelMap = new HashMap<String, Object>();
+		long shopId = HttpServletRequestUtil.getLong(request, "shopId");
+		if (shopId <= 0) {
 			Object currentShopObj = request.getSession().getAttribute("currentShop");
-			if(currentShopObj == null ) {//如果在session里面也没找到的话，就要重定向不跳转
-				modelmap.put("redirect", true);
-				modelmap.put("url", "/o2o/shopadmin/shoplist");
-			}else {//不为空的话，不需要重定向，shopId为当前的用户的id,因此需要创建一个当前用户
-				Shop currentShop =  (Shop) currentShopObj;
-				modelmap.put("redirect", false);
-				modelmap.put("shopId", currentShop.getShopId());
+			if (currentShopObj == null) {
+				modelMap.put("redirect", true);
+				modelMap.put("url", "/o2o/shopadmin/shoplist");
+			} else {
+				Shop currentShop = (Shop) currentShopObj;
+				modelMap.put("redirect", false);
+				modelMap.put("shopId", currentShop.getShopId());
 			}
-		}else {
-				Shop currentShop = new Shop();
-	     	    currentShop.setShopId(shopId);
-			    request.getSession().setAttribute("currentShop", currentShop);
-			    modelmap.put("redirect", false);
+		} else {
+			Shop currentShop = new Shop();
+			currentShop.setShopId(shopId);
+			request.getSession().setAttribute("currentShop", currentShop);
+			modelMap.put("redirect", false);
 		}
-		return modelmap;
+		return modelMap;
 	}
-	
+
 	@RequestMapping(value="/getshoplist",method=RequestMethod.GET)
 	@ResponseBody
 	public Map<String,Object> getshoplist(HttpServletRequest request){
 		Map<String,Object> modelMap = new HashMap<String,Object>();
-		PersonInfo user = new PersonInfo();
-		user.setUserId(1L);
-		user.setName("麦先生");
-		request.getSession().setAttribute("user", user);
-		user = (PersonInfo) request.getSession().getAttribute("user");
+
+	PersonInfo	user = (PersonInfo) request.getSession().getAttribute("user");
 		try {
 			Shop shopCondition = new Shop();
 			shopCondition.setOwner(user);
@@ -115,10 +115,10 @@ public class ShopManagementController {
 		//定义个map集合接收一下数据
 		Map<String,Object> modelMap =new HashMap<String,Object>();
 		//根据shopId查找数据
-		Long shopId = HttpServiceRequestUtil.getLong(request, "shopId");
+		Long shopId = HttpServletRequestUtil.getLong(request, "shopId");
 		if(shopId > -1) {//表示接收到前端的数据
 			try {
-				Shop shop = shopService.getByShop(shopId);
+				Shop shop = shopService.getByShopId(shopId);
 				List<Area> areaList = areaService.getAreaList();
 				modelMap.put("shop", shop);
 				modelMap.put("areaList", areaList);
@@ -171,7 +171,7 @@ public class ShopManagementController {
 		}
 		//1.接收并转换相应的信息，包括店铺的信息以及图片的信息
 			//将前端转换来的信息转换成shopStr实体类
-		String shopstr = HttpServiceRequestUtil.getString(request, "shopstr");
+		String shopstr = HttpServletRequestUtil.getString(request, "shopstr");
 		//利用ObjectMapper的readValue放啊发将json值转换成对象
 		ObjectMapper mapper = new ObjectMapper();
 		Shop shop = null;
@@ -205,7 +205,8 @@ public class ShopManagementController {
 		
 			ShopExecution se;
 			try {
-				se = shopService.addShop(shop,shopImg.getInputStream(),shopImg.getOriginalFilename());
+				ImageHolder imageHolder = new ImageHolder(shopImg.getOriginalFilename(),shopImg.getInputStream());
+				se = shopService.addShop(shop,imageHolder);
 				
 				if(se.getState()==ShopStateEnum.CHECK.getState()) {
 					modelMap.put("success", true);
@@ -253,7 +254,7 @@ public class ShopManagementController {
 			return modelMap;
 		}
 		//将传进来的值转换成字符串
-		String shopstr = HttpServiceRequestUtil.getString(request, "shopstr");
+		String shopstr = HttpServletRequestUtil.getString(request, "shopstr");
 		ObjectMapper mapper = new ObjectMapper();
 		Shop shop = null;
 		try {
@@ -278,9 +279,10 @@ public class ShopManagementController {
 			ShopExecution se;
 			try {
 				if(shopImg==null) {//如果相片是空的就传入空的值
-					se = shopService.modifyShop(shop, null, null);
+					se = shopService.modifyShop(shop, null);
 				}else {
-					se = shopService.modifyShop(shop, shopImg.getInputStream(), shopImg.getOriginalFilename());
+					ImageHolder imageHolder = new ImageHolder(shopImg.getOriginalFilename(),shopImg.getInputStream());
+					se = shopService.modifyShop(shop, imageHolder);
 				}
 				if(se.getState()==ShopStateEnum.SUCCESS.getState()) {
 					modelMap.put("success", true);
@@ -308,7 +310,7 @@ public class ShopManagementController {
 	/*
 	 *将流转换成文件类型
 	 */
-/*	private static void inputStreamToFile(InputStream ins,File file) {
+	private static void inputStreamToFile(InputStream ins,File file) {
 		FileOutputStream os = null;
 		try {
 			os=new FileOutputStream(file);
@@ -331,7 +333,7 @@ public class ShopManagementController {
 				throw new RuntimeException("调用inputStreamToFile关闭io产生异常:"+e.getMessage());
 			}
 		}
-	}*/
+	}
 	
 	
 	
@@ -343,5 +345,7 @@ public class ShopManagementController {
 	
 	
 }
+
+
 
 

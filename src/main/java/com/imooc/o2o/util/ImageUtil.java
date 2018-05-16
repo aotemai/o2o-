@@ -17,6 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
+import com.imooc.o2o.dto.ImageHolder;
+
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.geometry.Positions;
 
@@ -59,14 +61,14 @@ public class ImageUtil {
 	 */
 	
 	//处理用户传递过来的文件对象路径,thumbnail为读取的文件名，targetAddr为目标文件路径
-	public static String generateThumbnail(InputStream thumbnailInputStream,String fileName,String targetAddr) {
+	public static String generateThumbnail(ImageHolder thumbnail,String targetAddr) {
 		/*
 		 * 随机文件名+扩展名=新文件名，新文件名存储在targetAddr路径下
 		 */
 		//获取随机文件名
 		String realFileName = getRandomFileName();
 		//获取文件的扩展名
-		String extension = getFileExtension(fileName);
+		String extension = getFileExtension(thumbnail.getImageName());
 		//创建目录
 		makeDirPath(targetAddr);
 		//获取相对路径
@@ -81,7 +83,7 @@ public class ImageUtil {
 		
 		try {
 		//创建缩略图
-		Thumbnails.of(thumbnailInputStream).size(200, 200)
+		Thumbnails.of(thumbnail.getImage()).size(200, 200)
 		.watermark(Positions.BOTTOM_RIGHT,ImageIO.read(new File(basePath+"/watermark.gif")),0.25f)
 		.outputQuality(0.8f).toFile(dest);//toFile保存在哪个文件夹里面
 		}catch(IOException e) {
